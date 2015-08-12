@@ -1,0 +1,139 @@
+#! /usr/bin/phantom run
+
+setup_t module_setup = setup_module_t {
+	dir = "/usr/lib/phantom"
+	list = {
+		io_stream
+		io_stream_ipv6
+		io_stream_proto_http
+		io_stream_proto_monitor
+		io_client
+		io_client_proto_none
+		io_client_ipv6
+		swear_bot
+	}
+}
+
+setup_t caps_setup = setup_caps_t {
+	user = "root"
+	group = "root"
+	keep = { 10 23 }
+	rlimits = { { core unlimited } { nofile 1M } }
+}
+
+setup_t daemon_setup = setup_daemon_t {
+	pidfile = "/var/run/swear_bot/yabs.pid"
+	respawn = true
+	stderr = "/var/log/swear_bot/phantom-stderr.log"
+	coredump = once
+}
+
+scheduler_t main_scheduler = scheduler_simple_t {
+	threads = 4
+	event_buf_size = 1000
+	timeout_prec = 1
+}
+
+scheduler_t client_scheduler = scheduler_simple_t {
+	threads = 4
+	event_buf_size = 100
+	timeout_prec = 1
+}
+
+logger_t phantom_logger = logger_file_t {
+	filename = "/var/log/swear_bot/phantom.log"
+	level = info
+	scheduler = main_scheduler
+}
+
+logger = phantom_logger
+io_t api01_io = io_client_t {
+	links_t api01_links = links_ipv6_t {
+		count = 5
+		addresses = { ::1 }
+		port = 80
+	}
+
+	proto_t api01_proto = proto_none_t {
+		ibuf_size = 24K
+		obuf_size = 48K
+
+		out_timeout = 100
+		in_timeout = 500
+		queue_size = 16
+		quorum = 1
+	}
+	conn_timeout = 3s
+	links = { api01_links }
+	proto = api01_proto
+	scheduler = client_scheduler
+}
+
+io_t http_io = io_stream_ipv6_t {
+	proto_t http_proto = proto_http_t {
+		logger_t default_logger = logger_default_t {
+			filename = "/var/log/swear_bot/request.log"
+			scheduler = main_scheduler
+		}
+
+		loggers = { default_logger }
+
+		request_limits = {
+			line = 64K
+			field_num = 128
+			field = 8K
+			entity = 64K
+		}
+
+		handler_t swear_bot_handler = handler_swear_bot_t {
+			conf_t main_conf = conf_t {
+				logger_ext_t storage_logger = logger_ext_t {
+					filename = "/var/log/swear_bot/api.log"
+					log_all = true
+					check_interval = 1s
+					scheduler = main_scheduler
+				}
+				logger_ext = storage_logger
+				exts = {
+					"api" : {
+						proto = api01_proto
+						hostname = "swearbot.ru"
+						path = "/<YOUR TOKEN GOES HERE>/"
+						timeout = 500
+					}
+				}
+			}
+			conf = main_conf
+		}
+
+		host_default = "swearbot.ru"
+
+		host = {
+			"swearbot.ru" : {
+				path = {
+					"/" : { handler = swear_bot_handler }
+				}
+			}
+		}
+	}
+
+	ibuf_size = 8K
+	obuf_size = 8K
+	reuse_addr = true
+	listen_backlog = 1K
+	proto = http_proto
+	timeout = 5m
+	keepalive = 1d
+	port = 8080
+	defer_accept = true
+	cork = true
+	multiaccept = false
+
+	scheduler = main_scheduler
+}
+
+io_t update_fetcher_io = io_update_fetcher_t {
+	conf = main_conf
+	delta = 500
+	scheduler = main_scheduler
+}
