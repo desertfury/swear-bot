@@ -124,8 +124,8 @@ void get_next_word(const char *str, size_t len, char **word, size_t *wlen) {
 int main() {
 	char *word = nullptr;
 	size_t len = 0;
-	char const *str = "да желанный ты свет!";
-	size_t length = 32;
+	char const *str = "! 😁 asd лол ";
+	size_t length = 18;
 	char const *ptr = str;
 	size_t new_len = length;
 	while (ptr < str + length) {

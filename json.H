@@ -5,7 +5,7 @@
 
 const pd::pi_t::root_t *pibf_parse(pd::in_segment_t &in);
 
-pd::pi_t const *yabs_pi_object_lookup(pd::pi_t const *obj, char const *find);
+pd::pi_t const *pi_object_lookup(pd::pi_t const *obj, char const *find);
 
 static inline size_t pi_get_buf_size(size_t name_size)
 {

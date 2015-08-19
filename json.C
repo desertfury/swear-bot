@@ -21,7 +21,7 @@ const pd::pi_t &pi_name_buf(const char *name, size_t name_size, char *buf, size_
 	return root->value;
 }
 
-pd::pi_t const *yabs_pi_object_lookup(pd::pi_t const *obj, char const *find)
+pd::pi_t const *pi_object_lookup(pd::pi_t const *obj, char const *find)
 {
 	if (!find || !(*find))
 		return obj;
@@ -39,7 +39,7 @@ pd::pi_t const *yabs_pi_object_lookup(pd::pi_t const *obj, char const *find)
 					if (errno == 0 && ptr == close) {
 						if (array._count() > index) {
 							pd::pi_t const *val = &(array[index]);
-							return yabs_pi_object_lookup(val, close + 1);
+							return pi_object_lookup(val, close + 1);
 						}
 					}
 				}
@@ -63,7 +63,7 @@ pd::pi_t const *yabs_pi_object_lookup(pd::pi_t const *obj, char const *find)
 					val = map.lookup(pi_name_buf(name, name_size, buf, buf_size));
 				}
 
-				return yabs_pi_object_lookup(val, (part ? (part == dot ? (part + 1) : part) : nullptr));
+				return pi_object_lookup(val, (part ? (part == dot ? (part + 1) : part) : nullptr));
 			}
 		}
 	}
@@ -106,7 +106,7 @@ static uint64_t pi_check_int(pd::pi_t const *obj, uint64_t defval)
 
 uint64_t pi_get_int(pd::pi_t const *root, char const *name, uint64_t defval)
 {
-	pd::pi_t const *obj = yabs_pi_object_lookup(root, name);
+	pd::pi_t const *obj = pi_object_lookup(root, name);
 
 	return pi_check_int(obj, defval);
 }

@@ -71,7 +71,7 @@ void io_update_fetcher_t::run() const {
 			delete req;
 			continue;
 		}
-		auto result_array_obj = yabs_pi_object_lookup(&root->value, "result");
+		auto result_array_obj = pi_object_lookup(&root->value, "result");
 		if (!result_array_obj || result_array_obj->type() != pd::pi_t::_array) {
 			log_error("not an array_object on reslut path");
 			delete req;
@@ -80,7 +80,7 @@ void io_update_fetcher_t::run() const {
 		auto *array = &(result_array_obj->__array());
 		for (size_t i = 0; i < array->_count(); ++i) {
 			auto res_obj = &((*array)[i]);
-			auto text_obj = yabs_pi_object_lookup(res_obj, "message.text");
+			auto text_obj = pi_object_lookup(res_obj, "message.text");
 			size_t length = 0;
 			char const *text = pi_get_string(text_obj, &length);
 
