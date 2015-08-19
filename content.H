@@ -20,7 +20,7 @@ class content_t : public handler_t::reply_t::content_t {
 		in_segment_t in = res;
 //		auto root = pibf_parse(in);
 //		if (root) {
-//			auto obj = yabs_pi_object_lookup(&root->value, "result[1].message.text");
+//			auto obj = pi_object_lookup(&root->value, "result[1].message.text");
 //			if (obj) {
 //				size_t len = 0;
 //				char const *text = pi_get_string(obj, &len);
